@@ -1,0 +1,129 @@
+---
+// import { Image } from "astro:assets";
+// import Base from "@/layouts/Base.astro";
+// import { getCollection, getEntryBySlug } from "astro:content";
+// import type { CollectionEntry } from "astro:content";
+
+// type TCaseType = CollectionEntry<"cases">;
+// type TCasesIndex = {
+//   data: {
+//     title: string;
+//     description: string;
+//   };
+// };
+
+// // 获取案例首页数据
+// const entry = (await getEntryBySlug("cases", "index")) as TCasesIndex;
+// const { title, description } = entry.data;
+
+// // 获取所有案例
+// const cases: TCaseType[] = await getCollection("cases");
+// const filteredCases = cases.filter(item => !item.data.draft);
+
+// const categories = ["全部", "网站案例", "小程序案例"];
+// const currentCategory = Astro.url.searchParams.get("category") || "全部";
+
+// const displayCases = currentCategory === "全部" 
+//   ? filteredCases 
+//   : filteredCases.filter(item => item.data.category === currentCategory);
+
+
+import { Image } from "astro:assets";
+import config from "@/config/config.json";
+import Base from "@/layouts/Base.astro";
+import { getSinglePage } from "@/lib/contentParser.astro";
+import { sortByDate } from "@/lib/utils/sortFunctions";
+import { getEntryBySlug } from "astro:content";
+import type { TIndexData } from "@/types";
+import Pagination from "@/layouts/components/Pagination.astro";
+
+const { cases_folder, summary_length } = config.settings;
+
+const caseIndex = (await getEntryBySlug<any, string>(
+  cases_folder,
+  "index",
+)) as TIndexData;
+const cases = await getSinglePage(cases_folder as any);
+const sortedCases = sortByDate(cases);
+const totalPages = Math.ceil(cases.length / config.settings.pagination);
+const currentCases = sortedCases.slice(0, config.settings.pagination);
+---
+
+<Base title={title}>
+  <section class="section">
+    <div class="container">
+      <h1 class="text-center font-normal lg:text-[56px]">
+        {title}
+      </h1>
+      <p class="text-center mt-4">{description}</p>
+      
+      <!-- 分类过滤 -->
+      <div class="mb-8 flex justify-center space-x-4">
+        {
+          categories.map((category) => (
+            <a
+              href={`/cases${category === "全部" ? "" : `?category=${category}`}`}
+              class={`category-btn px-4 py-2 rounded-lg ${
+                category === currentCategory ? "active" : ""
+              }`}
+            >
+              {category}
+            </a>
+          ))
+        }
+      </div>
+
+      <!-- 案例列表 -->
+      <div class="row pb-12">
+        {displayCases.length > 0 && (
+          <div class="row col-12 pb-24 pt-16">
+            <div class="md:col-6">
+              <Image
+                class="rounded-lg"
+                src={displayCases[0].data.image}
+                alt={displayCases[0].data.title}
+                width={925}
+                height={475}
+              />
+            </div>
+            <div class="md:col-6">
+              <h2 class="h3 mb-2 mt-4">
+                {displayCases[0].data.title}
+              </h2>
+              <p class="text-text">
+                {displayCases[0].data.description}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {
+            displayCases.slice(1).map((item) => (
+              <div class="case-item">
+                <Image
+                  class="rounded-lg mb-4"
+                  src={item.data.image}
+                  alt={item.data.title}
+                  width={400}
+                  height={300}
+                />
+                <h3 class="h4 mb-2">{item.data.title}</h3>
+                <p class="text-text">{item.data.description}</p>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+.category-btn {
+  @apply bg-white border border-border hover:bg-primary hover:text-white transition;
+}
+.category-btn.active {
+  @apply bg-primary text-white;
+}
+</style> 

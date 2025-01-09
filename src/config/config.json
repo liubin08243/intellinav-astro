@@ -14,7 +14,8 @@
   "settings": {
     "pagination": 4,
     "summary_length": 200,
-    "blog_folder": "blog"
+    "blog_folder": "blog",
+    "cases_folder": "cases"
   },
 
   "nav_button": {

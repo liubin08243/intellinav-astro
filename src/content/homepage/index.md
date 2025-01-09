@@ -90,4 +90,8 @@ call_to_action:
     enable: true
     label: "Contact Us"
     link: "/contact"
+
+cases:
+  title: "Selected cases"
+  description: "Our success stories show"
 ---

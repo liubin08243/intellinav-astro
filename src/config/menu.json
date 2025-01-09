@@ -23,6 +23,10 @@
     {
       "name": "Elements",
       "url": "/elements"
+    },
+    {
+      "name": "Cases",
+      "url": "/cases"
     }
   ],
   "footer": [

@@ -15,7 +15,11 @@ const homepage = defineCollection({
     }).optional(),
     feature: z.object({
       title: z.string().optional(),
-      features: z.array(z.object({name: z.string().optional(), icon: z.string().optional(), content: z.string().optional()})),
+      features: z.array(z.object({
+        name: z.string().optional(),
+        icon: z.string().optional(),
+        content: z.string().optional()
+      })).optional(),
     }).optional(),
     services: z.array(z.object({
       title: z.string().optional(),
@@ -131,6 +135,17 @@ const pricing_page = defineCollection({
   })
 })
 
+// Cases collection schema
+const casesCollection = defineCollection({
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    image: z.string(),
+    category: z.enum(["网站案例", "小程序案例"]),
+    draft: z.boolean().optional().default(false)
+  })
+});
+
 // Interface for content
 export interface PageData {
   blog: string,
@@ -139,6 +154,7 @@ export interface PageData {
   // contact: string,
   // faq: string,
   // pricing: string
+  cases: string
 }
 
 
@@ -146,8 +162,6 @@ export interface PageData {
 export const collections = {
   blog: postsCollection,
   pages: pagesCollection,
-  // homepage: homepage,
-  // contact: contact_page,
-  // faq: faq_page,
-  // pricing: pricing_page
+  homepage: homepage,
+  cases: casesCollection,
 };
