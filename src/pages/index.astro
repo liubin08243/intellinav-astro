@@ -6,13 +6,7 @@ import { markdownify } from "@/lib/utils/textConverter";
 import { getEntryBySlug, getCollection } from "astro:content";
 
 const homepage = await getEntryBySlug("homepage", "index");
-const { banner, feature, services, workflow, call_to_action,cases } = homepage.data;
-
-// 获取最新的6个案例
-// const allCases = await getCollection("cases");
-// const cases = allCases
-//   .filter(item => !item.data.draft)
-//   .slice(0, 6);
+const { banner, feature, services, workflow, call_to_action } = homepage.data;
 ---
 
 <Base>

@@ -1,70 +1,57 @@
 ---
-// import { Image } from "astro:assets";
-// import Base from "@/layouts/Base.astro";
-// import { getCollection, getEntryBySlug } from "astro:content";
-// import type { CollectionEntry } from "astro:content";
-
-// type TCaseType = CollectionEntry<"cases">;
-// type TCasesIndex = {
-//   data: {
-//     title: string;
-//     description: string;
-//   };
-// };
-
-// // 获取案例首页数据
-// const entry = (await getEntryBySlug("cases", "index")) as TCasesIndex;
-// const { title, description } = entry.data;
-
-// // 获取所有案例
-// const cases: TCaseType[] = await getCollection("cases");
-// const filteredCases = cases.filter(item => !item.data.draft);
-
-// const categories = ["全部", "网站案例", "小程序案例"];
-// const currentCategory = Astro.url.searchParams.get("category") || "全部";
-
-// const displayCases = currentCategory === "全部" 
-//   ? filteredCases 
-//   : filteredCases.filter(item => item.data.category === currentCategory);
-
-
 import { Image } from "astro:assets";
 import config from "@/config/config.json";
 import Base from "@/layouts/Base.astro";
-import { getSinglePage } from "@/lib/contentParser.astro";
+import { getCollection } from "astro:content";
 import { sortByDate } from "@/lib/utils/sortFunctions";
-import { getEntryBySlug } from "astro:content";
-import type { TIndexData } from "@/types";
-import Pagination from "@/layouts/components/Pagination.astro";
+import { markdownify } from "@/lib/utils/textConverter";
 
-const { cases_folder, summary_length } = config.settings;
+// 获取所有案例并按照编号排序
+const cases = await getCollection("cases");
+const sortedCases = cases.sort((a, b) => {
+  const numA = parseInt(a.id.split('-')[1]);
+  const numB = parseInt(b.id.split('-')[1]);
+  return numA - numB;
+});
 
-const caseIndex = (await getEntryBySlug<any, string>(
-  cases_folder,
-  "index",
-)) as TIndexData;
-const cases = await getSinglePage(cases_folder as any);
-const sortedCases = sortByDate(cases);
-const totalPages = Math.ceil(cases.length / config.settings.pagination);
-const currentCases = sortedCases.slice(0, config.settings.pagination);
+// 获取当前分类
+const currentCategory = Astro.url.searchParams.get('category') || 'All';
+
+// 过滤案例
+const filteredCases = currentCategory === 'All' 
+  ? sortedCases 
+  : sortedCases.filter(item => item.data.category === currentCategory);
+
+const totalPages = Math.ceil(filteredCases.length / config.settings.pagination);
+
+// 获取前6个案例
+const initialCases = filteredCases.slice(0, 6);
+const hasMore = filteredCases.length > 6;
+
+// 分类列表
+const categories = ['All', 'Website', 'Small Program', 'Mobile'];
+
+console.log('Initial cases:', initialCases.map(c => c.id));
 ---
 
-<Base title={title}>
+<Base title="Case Studies">
   <section class="section">
     <div class="container">
-      <h1 class="text-center font-normal lg:text-[56px]">
-        {title}
-      </h1>
-      <p class="text-center mt-4">{description}</p>
-      
-      <!-- 分类过滤 -->
-      <div class="mb-8 flex justify-center space-x-4">
+      <h1 
+        class="mb-10 text-center font-normal lg:text-[56px]"
+        set:html={markdownify("Case Studies")}
+      />
+
+      <!-- Category tabs -->
+      <div class="mb-8 flex space-x-4">
         {
           categories.map((category) => (
             <a
-              href={`/cases${category === "全部" ? "" : `?category=${category}`}`}
-              class={`category-btn px-4 py-2 rounded-lg ${
-                category === currentCategory ? "active" : ""
+              href={`?category=${category}`}
+              class={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                category === currentCategory
+                  ? 'bg-primary text-white'
+                  : 'bg-theme-light hover:bg-primary hover:text-white'
               }`}
             >
               {category}
@@ -73,57 +60,133 @@ const currentCases = sortedCases.slice(0, config.settings.pagination);
         }
       </div>
 
-      <!-- 案例列表 -->
+      <!-- Case list -->
       <div class="row pb-12">
-        {displayCases.length > 0 && (
-          <div class="row col-12 pb-24 pt-16">
-            <div class="md:col-6">
-              <Image
-                class="rounded-lg"
-                src={displayCases[0].data.image}
-                alt={displayCases[0].data.title}
-                width={925}
-                height={475}
-              />
-            </div>
-            <div class="md:col-6">
-              <h2 class="h3 mb-2 mt-4">
-                {displayCases[0].data.title}
-              </h2>
-              <p class="text-text">
-                {displayCases[0].data.description}
-              </p>
-            </div>
-          </div>
-        )}
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div id="cases-grid" class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {
-            displayCases.slice(1).map((item) => (
-              <div class="case-item">
-                <Image
-                  class="rounded-lg mb-4"
-                  src={item.data.image}
-                  alt={item.data.title}
-                  width={400}
-                  height={300}
-                />
-                <h3 class="h4 mb-2">{item.data.title}</h3>
-                <p class="text-text">{item.data.description}</p>
-              </div>
+            initialCases.map((item) => (
+              <a href={`/cases/${item.id}`} class="case-item group block">
+                <div class="overflow-hidden rounded-lg">
+                  <img
+                    class="w-full rounded-lg transition duration-300 group-hover:scale-[1.03]"
+                    src={item.data.image}
+                    alt={item.data.title}
+                    width="445"
+                    height="230"
+                  />
+                  <span class="category-badge">
+                    {item.data.category}
+                  </span>
+                </div>
+                <h3 class="h4 mb-2 mt-4">
+                  {item.data.title}
+                </h3>
+                <p class="text-text">
+                  {item.data.description}
+                </p>
+              </a>
             ))
           }
         </div>
       </div>
+
+      {hasMore && (
+        <div class="mt-12 text-center">
+          <button 
+            id="load-more" 
+            class="btn btn-primary" 
+            data-total-pages={totalPages}
+            data-category={currentCategory}
+          >
+            Load More
+          </button>
+        </div>
+      )}
     </div>
   </section>
 </Base>
 
 <style>
-.category-btn {
-  @apply bg-white border border-border hover:bg-primary hover:text-white transition;
+.category-badge {
+  @apply absolute top-4 right-4 bg-primary text-white px-3 py-1 rounded-full text-sm;
 }
-.category-btn.active {
-  @apply bg-primary text-white;
+.case-item {
+  @apply relative;
 }
-</style> 
+</style>
+
+<script>
+interface CaseItem {
+  id: string;
+  data: {
+    title: string;
+    description: string;
+    image: string;
+    category: string;
+  }
+}
+
+let currentPage = 1;
+const loadMoreBtn = document.getElementById('load-more') as HTMLButtonElement;
+const currentCategory = loadMoreBtn?.dataset.category || 'All';
+
+if (loadMoreBtn) {
+  loadMoreBtn.addEventListener('click', async () => {
+    console.log('Load more clicked, current page:', currentPage);
+
+    try {
+      loadMoreBtn.textContent = 'Loading...';
+      loadMoreBtn.disabled = true;
+
+      const response = await fetch(`/api/cases?page=${currentPage + 1}&category=${currentCategory}`);
+      const data = await response.json();
+      
+      console.log('Received cases:', data.cases?.map((c: { id: string }) => c.id));
+
+      if (data.cases?.length > 0) {
+        currentPage++;
+        const casesGrid = document.getElementById('cases-grid');
+        
+        data.cases.forEach((item: CaseItem) => {
+          const caseElement = `
+            <a href="/cases/${item.id}" class="case-item group block">
+              <div class="overflow-hidden rounded-lg">
+                <img
+                  class="w-full rounded-lg transition duration-300 group-hover:scale-[1.03]"
+                  src="${item.data.image}"
+                  alt="${item.data.title}"
+                  width="445"
+                  height="230"
+                />
+                <span class="category-badge">
+                  ${item.data.category}
+                </span>
+              </div>
+              <h3 class="h4 mb-2 mt-4">
+                ${item.data.title}
+              </h3>
+              <p class="text-text">
+                ${item.data.description}
+              </p>
+            </a>
+          `;
+          casesGrid?.insertAdjacentHTML('beforeend', caseElement);
+        });
+
+        if (currentPage >= data.totalPages) {
+          console.log('All cases loaded, removing button');
+          loadMoreBtn.remove();
+        } else {
+          loadMoreBtn.textContent = 'Load More';
+          loadMoreBtn.disabled = false;
+        }
+      } else {
+        loadMoreBtn.remove();
+      }
+    } catch (error) {
+      console.error('Error loading more cases:', error);
+      loadMoreBtn.textContent = 'Error Loading More';
+    }
+  });
+}
+</script> 

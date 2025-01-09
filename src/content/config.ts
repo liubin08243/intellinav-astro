@@ -139,9 +139,12 @@ const pricing_page = defineCollection({
 const casesCollection = defineCollection({
   schema: z.object({
     title: z.string(),
+    meta_title: z.string().optional(),
     description: z.string(),
     image: z.string(),
-    category: z.enum(["网站案例", "小程序案例"]),
+    category: z.enum(["Website", "Small Program", "Mobile"]),
+    client: z.string().optional(),
+    date: z.string().optional(),
     draft: z.boolean().optional().default(false)
   })
 });

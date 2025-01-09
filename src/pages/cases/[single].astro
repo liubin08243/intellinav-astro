@@ -1,0 +1,84 @@
+---
+import Base from "@/layouts/Base.astro";
+import { getCollection } from "astro:content";
+import { markdownify } from "@/lib/utils/textConverter";
+
+export async function getStaticPaths() {
+  const cases = await getCollection("cases");
+  return cases.map((item) => ({
+    params: {
+      single: item.slug,
+    },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props;
+const { title, description, image, category, client, date } = item.data;
+const { Content } = await item.render();
+---
+
+<Base title={title} description={description} image={image}>
+  <section class="section case-details">
+    <div class="container">
+      <div class="row">
+        <article class="col-12">
+          <!-- 标题部分 -->
+          <div class="text-center mb-10">
+            <h1 
+              class="h2 mb-4"
+              set:html={markdownify(title)}
+            />
+            <ul class="flex items-center justify-center space-x-4">
+              <li>
+                <span class="block font-bold">Category</span>
+                <span>{category}</span>
+              </li>
+              <li>
+                <span class="block font-bold">Client</span>
+                <span>{client || "N/A"}</span>
+              </li>
+              <li>
+                <span class="block font-bold">Date</span>
+                <span>{date || "N/A"}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- 主图 -->
+          <div class="mb-10">
+            <img
+              src={image}
+              alt={title}
+              width="1200"
+              height="600"
+              class="rounded-lg w-full"
+            />
+          </div>
+
+          <!-- 内容部分 -->
+          <div class="content">
+            <Content />
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+.content {
+  @apply prose max-w-none
+    prose-headings:font-bold prose-headings:text-dark 
+    prose-h1:text-4xl md:prose-h1:text-5xl
+    prose-h2:text-3xl md:prose-h2:text-4xl
+    prose-h3:text-2xl md:prose-h3:text-3xl
+    prose-h4:text-xl md:prose-h4:text-2xl
+    prose-h5:text-lg md:prose-h5:text-xl
+    prose-h6:text-base md:prose-h6:text-lg
+    prose-p:text-base prose-p:mb-4
+    prose-blockquote:border-l-4 prose-blockquote:border-primary 
+    prose-blockquote:bg-gray-50 prose-blockquote:px-4 prose-blockquote:py-2
+    prose-li:text-base prose-li:marker:text-primary;
+}
+</style> 
