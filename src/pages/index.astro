@@ -197,32 +197,4 @@ const { banner, feature, services, workflow, call_to_action,cases } = homepage.d
 
   <!-- Call to Action -->
   <Cta cta={call_to_action} />
-
-  <!-- {
-    cases.length > 0 && (
-      <section class="section">
-        <div class="container">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {cases.map((item) => (
-              <div class="case-item">
-                <Image
-                  class="rounded-lg mb-4"
-                  src={item.data.image}
-                  alt={item.data.title}
-                  width={400}
-                  height={300}
-                />
-                <h3 class="h4 mb-2">{item.data.title}</h3>
-                <p class="text-text">{item.data.description}</p>
-              </div>
-            ))}
-          </div>
-          
-          <div class="text-center mt-8">
-            <a href="/cases" class="btn btn-primary">查看更多案例</a>
-          </div>
-        </div>
-      </section>
-    )
-  } -->
 </Base>
